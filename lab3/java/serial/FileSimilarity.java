@@ -23,6 +23,7 @@ public class FileSimilarity {
             for (int j = i + 1; j < args.length; j++) {
                 String file1 = args[i];
                 String file2 = args[j];
+                
                 List<Long> fingerprint1 = fileFingerprints.get(file1);
                 List<Long> fingerprint2 = fileFingerprints.get(file2);
                 float similarityScore = similarity(fingerprint1, fingerprint2);
