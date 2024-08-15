@@ -40,15 +40,39 @@ public class FileSimilarity {
             thread.join();
         }
         // Compare each pair of files
-    
-        for (int i = 0; i < args.length; i++) {
-            for (int j = i + 1; j < args.length; j++) {
-                String file1 = args[i];
-                String file2 = args[j];
-                List<Long> fingerprint1 = fileFingerprints.get(file1);
-                List<Long> fingerprint2 = fileFingerprints.get(file2);
-                float similarityScore = similarity(fingerprint1, fingerprint2);
-                System.out.println("Similarity between " + file1 + " and " + file2 + ": " + (similarityScore * 100) + "%");
+        List<Thread> similarityThreads = new ArrayList<>();
+        List<String> filePaths = new ArrayList<>(fileFingerprints.keySet());
+        for (int i = 0; i < filePaths.size(); i++) {
+            for (int j = i + 1; j < filePaths.size(); j++) {
+                String file1 = filePaths.get(i);
+                String file2 = filePaths.get(j);
+
+                Thread simThread = new Thread(() -> {
+                    try {
+                        List<Long> fingerprint1, fingerprint2;
+                        // List<Long> fingerprint1 = fileFingerprints.get(file1);
+                        // List<Long> fingerprint2 = fileFingerprints.get(file2);
+
+                        mutex.acquire();
+                        try{
+                            fingerprint1 = fileFingerprints.get(file1);
+                            fingerprint2 = fileFingerprints.get(file2);
+                        }finally {
+                            mutex.release();
+                        }
+                        if ( fingerprint1 != null && fingerprint2 != null) {
+                            float similarityScore = similarity(fingerprint1, fingerprint2);
+                            System.out.println("Similarity between " + file1 + " and " + file2 + ": " + (similarityScore * 100) + "%");
+                            
+                        }
+                    } catch (Exception e) {
+                        // TODO: handle exception
+                        e.printStackTrace();
+                    }
+                });
+                
+                similarityThreads.add(simThread);
+                simThread.start();
             }
         }
     }
